@@ -1,16 +1,18 @@
 #include "lib.hpp"
 
-
 struct Node {
     std::unordered_map<char, Node*> children;
     Node* failure_link;
-    std::unordered_set<string> outputs;
+    std::unordered_set<string> dict_links;
     Node() {
         this->children = std::unordered_map<char, Node*>();
         this->failure_link = nullptr;
-        this->outputs = std::unordered_set<string>();
+        this->dict_links = std::unordered_set<string>();
     }
 
+    
+
+    //  Children manipulation
     bool has_child(char key) {
         return (this->children.find(key) != this->children.end());
     }
@@ -21,51 +23,77 @@ struct Node {
         this->children[key] = node;
     }
 
-    void add_output(string output) {
-        this->outputs.insert(output);
+    //  Dictionary links
+    void add_dict_link(string dict_link) {
+        this->dict_links.insert(dict_link);
     }
-    void copy_outputs(Node* target) {
-        for (string output: target->outputs)
-            this->outputs.insert(output);
+    void copy_dict_links(Node* target) {
+        for (string dict_link: target->dict_links)
+            this->dict_links.insert(dict_link);    
     }
 };
 
 
-struct Trie {
-    Node* root;
+template<typename Collection>
+class Trie {
+protected:
+    Node* Root;
     
-    
-    void insert(string pattern) {
-        Node *cur_node = this->root;
-        // std::cout << pattern << std::endl;
+    //  Add new pattern into the trie
+    void add_pattern(string pattern) {
+        Node *cur_node = Root;
         for (char key : pattern) {
-            // std::cout << key << "->";
-            // std::flush(std::cout);
-            if (!(cur_node->has_child(key))) {
+            if (!(cur_node->has_child(key))) 
                 cur_node->set_child(key, new Node());
-            }
             cur_node = cur_node->get_child(key);
         }
-        // std::cout << std::endl;
-        cur_node->add_output(pattern);
-        cur_node = this->root;
+        cur_node->add_dict_link(pattern);
     }
 
-    void print() {
-        for (const auto& [key, child] : this->root->children) {
-            std::flush(std::cout);
+    //  Create failure and dictionary links
+    void InitializeLinks() {
+        Node *cur_node;
+        Root->failure_link = Root;
+        std::queue<Node*> queue;
+
+        for (const auto& [_, c] : Root->children) {
+            c->failure_link = Root;
+            queue.push(c);
         }
-        std::cout << this->root->children.size();
-        std::cout << "\n";
+
+        while(!queue.empty()) {
+            cur_node = queue.front();
+            queue.pop();         
+            for (const auto& [key, child] : cur_node->children) {
+                queue.push(child);
+
+            /*  
+            Trace back the failure link by searching until we:
+                a) Find the Node with (key) as a child
+                b) Get into a root self-loop
+            */
+                Node* Traceback = cur_node->failure_link;
+                while (!Traceback->has_child(key) && (Traceback != Root)) 
+                    Traceback = Traceback->failure_link;
+                
+
+                child->failure_link = 
+                Traceback->get_child(key) == nullptr 
+                    ? Root 
+                    : Traceback->get_child(key);    
+                child->copy_dict_links(child->failure_link);
+            }
+        }
     }
-    
-    template<typename Collection>
+
+public:
     Trie(Collection patterns) {
-        this->root = new Node();
-        // (this->root).failure_link = &(this->root);
+        this->Root = new Node();
         for (string pattern: patterns) 
-            this->insert(pattern);
+            this->add_pattern(pattern);
+        InitializeLinks();
     }
 
-
+    //  Add new pattern for search (TBD)
+    
 };

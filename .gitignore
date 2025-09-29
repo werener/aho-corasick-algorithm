@@ -1,6 +1,11 @@
 main
+
+.vscode
 # Prerequisites
 *.d
+
+*.sh
+*.bat
 
 # Compiled Object files
 *.slo
