@@ -1,13 +1,15 @@
 #include "lib.hpp"
 
+#define output_type string
+
 struct Node {
     std::unordered_map<char, Node*> children;
     Node* failure_link;
-    std::unordered_set<Node*> outputs;
+    std::unordered_set<output_type> outputs;
     Node() {
         this->children = std::unordered_map<char, Node*>();
         this->failure_link = nullptr;
-        this->outputs = std::unordered_set<Node*>();
+        this->outputs = std::unordered_set<output_type>();
     }
 
     bool has_child(char key) {
@@ -18,6 +20,14 @@ struct Node {
     }
     void set_child(char key, Node* node) {
         this->children[key] = node;
+    }
+
+    void add_output(output_type output) {
+        this->outputs.insert(output);
+    }
+    void copy_outputs(Node* target) {
+        for (output_type output: target->outputs)
+            this->outputs.insert(output);
     }
 };
 
