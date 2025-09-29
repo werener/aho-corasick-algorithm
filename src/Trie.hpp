@@ -2,6 +2,7 @@
 
 #define output_type string
 
+
 struct Node {
     std::unordered_map<char, Node*> children;
     Node* failure_link;
@@ -31,7 +32,13 @@ struct Node {
     }
 };
 
-
+template<typename Collection>
 struct Trie {
+    Node root;
+    Trie(Collection patterns) {
+        this->root = Node();
+        for (string pattern: patterns) {
 
+        }
+    }
 };
