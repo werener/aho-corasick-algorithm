@@ -1,25 +1,23 @@
 #include "lib.hpp"
 
-#define string string
-
 
 struct Node {
-    std::unordered_map<char, Node> children;
+    std::unordered_map<char, Node*> children;
     Node* failure_link;
     std::unordered_set<string> outputs;
     Node() {
-        this->children = std::unordered_map<char, Node>();
+        this->children = std::unordered_map<char, Node*>();
         this->failure_link = nullptr;
         this->outputs = std::unordered_set<string>();
     }
 
     bool has_child(char key) {
-        return this->children.find(key) == this->children.end();
+        return (this->children.find(key) != this->children.end());
     }
     Node* get_child(char key) {
-        return this->has_child(key) ? &(this->children[key]) : nullptr;
+        return this->has_child(key) ? this->children[key] : nullptr;
     }
-    void set_child(char key, Node node) {
+    void set_child(char key, Node* node) {
         this->children[key] = node;
     }
 
@@ -34,22 +32,40 @@ struct Node {
 
 
 struct Trie {
-    Node root;
-
+    Node* root;
+    
+    
     void insert(string pattern) {
-        Node cur_node = this->root;
+        Node *cur_node = this->root;
+        // std::cout << pattern << std::endl;
         for (char key : pattern) {
-            if (!cur_node.has_child(key)) 
-                cur_node.set_child(key, Node());
-            cur_node = *cur_node.get_child(key);
+            // std::cout << key << "->";
+            // std::flush(std::cout);
+            if (!(cur_node->has_child(key))) {
+                cur_node->set_child(key, new Node());
+            }
+            cur_node = cur_node->get_child(key);
         }
-        cur_node.add_output(pattern);
+        // std::cout << std::endl;
+        cur_node->add_output(pattern);
+        cur_node = this->root;
     }
 
+    void print() {
+        for (const auto& [key, child] : this->root->children) {
+            std::flush(std::cout);
+        }
+        std::cout << this->root->children.size();
+        std::cout << "\n";
+    }
+    
     template<typename Collection>
     Trie(Collection patterns) {
-        this->root = Node();
+        this->root = new Node();
+        // (this->root).failure_link = &(this->root);
         for (string pattern: patterns) 
             this->insert(pattern);
     }
+
+
 };
