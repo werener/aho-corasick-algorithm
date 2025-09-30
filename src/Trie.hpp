@@ -1,5 +1,7 @@
 #include "lib.hpp"
 
+typedef std::tuple<string, size_t, size_t> entry;
+
 struct Node {
     std::unordered_map<char, Node*> children;
     Node* failure_link;
@@ -10,7 +12,11 @@ struct Node {
         this->dict_links = std::unordered_set<string>();
     }
 
-    
+    void print_children() {
+        for (auto c : children)
+            std::cout << c.first << " ";
+        std::cout << std::endl;
+    }
 
     //  Children manipulation
     bool has_child(char key) {
@@ -94,6 +100,27 @@ public:
         InitializeLinks();
     }
 
-    //  Add new pattern for search (TBD)
     
+    std::vector<entry> search(string text) {
+        std::vector<entry> found{};
+        Node* state = Root;
+        size_t i = 0;
+        char c;
+        while (i < text.size()) {
+            c = text[i];
+            if (state->has_child(c)) {
+                state = state->get_child(c);
+                ++i;
+
+                if (!state->dict_links.empty()) 
+                    for (string dict_link : state->dict_links) 
+                        found.push_back(entry{ dict_link, i - dict_link.size(), i });                
+            }
+            else if (state == Root) 
+                ++i;
+            else 
+                state = state->failure_link;
+        }
+        return found;
+    }
 };
